@@ -117,7 +117,7 @@ export default function ChatPage({ chatId, title, messages = [] }) {
     });
 
     const data = await response.json();
-    console.log("RESPONSE from SDK: " + JSON.stringify(data));
+    // console.log("RESPONSE from SDK: " + JSON.stringify(data));
 
     if(!data){
       return;
@@ -203,7 +203,7 @@ export const getServerSideProps = async (ctx) => {
 
   debugger;
   const chatId = ctx.params?.chatId?.[0] || null; // for example this will fetch the chatId from /chat/1234 or /chat/1234/5678 or /chat/1234/5678/91011 or default to null if no chatId is provided
-  console.log("chatId t: " + JSON.stringify(ctx.params));
+  // console.log("chatId t: " + JSON.stringify(ctx.params));
   if (chatId) {
     let objectId;
 
@@ -211,7 +211,6 @@ export const getServerSideProps = async (ctx) => {
     try {
       objectId = new ObjectId(chatId);
     } catch (e) {
-      console.error(e);
       return {
         redirect: {
           destination: "/chat", //redirect to the new chat page

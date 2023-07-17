@@ -29,13 +29,13 @@ export default async function handler(req, res) {
         }
         const client = await clientPromise;
         const db = client.db("ChattyAADDev");
-        console.log("token.sub: ", token.sub);
+        // console.log("token.sub: ", token.sub);
         const newChat = await db.collection("chats").insertOne({
             userId: token.sub,
             messages: [newUserMessage],
             title: message,
         });
-        console.log("newChat: ", newChat.insertedId);
+        // console.log("newChat: ", newChat.insertedId);
         res.status(200).json({
             _id: newChat.insertedId,
             messages: [newUserMessage],

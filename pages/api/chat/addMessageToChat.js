@@ -16,7 +16,7 @@ export default async function handler(req, res) {
         const db = client.db("ChattyAADDev");
 
         const { chatId, role, content } = req.body;
-        console.log("chatId from add page",chatId);
+        // console.log("chatId from add page",chatId);
         // const chatId = token.sub;
         // const chatId = decoded.oid;
 

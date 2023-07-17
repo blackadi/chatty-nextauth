@@ -5,8 +5,8 @@ export default async function handler(req, res) {
     try{
       // console.log("req header: " + req.headers.cookie );
       let { chatId, message } = await req.body;
-      console.log("chatId from sendMSG_SDK: " + chatId);
-      console.log("message from sendMSG_SDK: " + message);
+      // console.log("chatId from sendMSG_SDK: " + chatId);
+      // console.log("message from sendMSG_SDK: " + message);
 
       // validate message data
       if (!message || typeof message !== "string" || message.length > 200) {
@@ -25,12 +25,11 @@ export default async function handler(req, res) {
       ];
       let newChatId;
       let chatMessages = [];
-
       
       if (chatId) {
           // add message to chat
           const response = await fetch(
-            `http://${req.headers.host}/api/chat/addMessageToChat`,
+            `https://${req.headers.host}/api/chat/addMessageToChat`,
             {
               method: "POST",
               headers: {
@@ -50,7 +49,7 @@ export default async function handler(req, res) {
         } else {
           console.log("chatId not found");
           const response = await fetch(
-            `http://${req.headers.host}/api/chat/createNewChat`,
+            `https://${req.headers.host}/api/chat/createNewChat`,
             {
               method: "POST",
               headers: {
@@ -99,7 +98,7 @@ export default async function handler(req, res) {
       }
       
       const resp = await fetch(
-        `http://${req.headers.host}/api/chat/addMessageToChat`,
+        `https://${req.headers.host}/api/chat/addMessageToChat`,
         {
           method: "POST",
           headers: {
