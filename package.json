@@ -3,18 +3,21 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "cross-env NODE_OPTIONS='--inspect' next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
-    "@auth0/nextjs-auth0": "^2.4.0",
+    "@azure/openai": "^1.0.0-beta.2",
     "@fortawesome/fontawesome-svg-core": "^6.4.0",
     "@fortawesome/free-solid-svg-icons": "^6.4.0",
     "@fortawesome/react-fontawesome": "^0.2.0",
+    "axios": "^1.4.0",
+    "jwt-decode": "^3.1.2",
     "mongodb": "^5.2.0",
     "next": "13.3.0",
+    "next-auth": "^4.22.1",
     "openai-edge-stream": "^2.0.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -25,6 +28,7 @@
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.9",
     "autoprefixer": "^10.4.14",
+    "cross-env": "^7.0.3",
     "eslint": "8.38.0",
     "eslint-config-next": "13.3.0",
     "postcss": "^8.4.21",
