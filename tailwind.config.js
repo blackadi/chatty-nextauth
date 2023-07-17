@@ -12,7 +12,10 @@ module.exports = {
     extend: { 
       fontFamily: {
         body: 'var(-font-outfit), sans-serif',
-      }
+      },
+      animation: {
+        'bounce-slow': 'bounce 2s linear infinite',
+       }
     },
   },
   plugins: [require("@tailwindcss/typography")],
