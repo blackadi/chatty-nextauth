@@ -5,8 +5,8 @@ export default async function handler(req, res) {
     try{
       // console.log("req header: " + req.headers.cookie );
       let { chatId, message } = await req.body;
-      // console.log("chatId from sendMSG_SDK: " + chatId);
-      // console.log("message from sendMSG_SDK: " + message);
+       console.log("chatId from sendMSG_SDK: " + chatId);
+       console.log("message from sendMSG_SDK: " + message);
 
       // validate message data
       if (!message || typeof message !== "string" || message.length > 200) {
@@ -44,7 +44,7 @@ export default async function handler(req, res) {
             }
           );
           const json = await response.json();
-          // console.log("response SDK: " + JSON.stringify(json.chat.messages));
+           console.log("response addMessageToChat inside SDK: " + JSON.stringify(json.chat.messages));
           chatMessages = json.chat.messages || [];
         } else {
           console.log("chatId not found");
@@ -113,7 +113,7 @@ export default async function handler(req, res) {
         }
       );
       const json = await resp.json();
-      console.log("resp SDK: " + JSON.stringify(json));
+      console.log("resp the same inside SDK: " + JSON.stringify(json));
 
         // console.log("newChatId from sdk: " + newChatId);
       if(newChatId !== null){
