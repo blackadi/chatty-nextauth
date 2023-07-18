@@ -77,62 +77,62 @@ export default function ChatPage({ chatId, title, messages = [] }) {
     })
     setMessageText("");
 
-    // //via API
-    // const response = await fetch(`/api/chat/sendMessage`, {
-    //     method: "POST",
-    //     headers: {
-    //         "content-type": "application/json",
-    //     },
-    //     body: JSON.stringify({ chatId, message: messageText }),
-    // });
-
-    // const data = response.body;
-    // if(!data){
-    //   return;
-    // }
-
-    // const reader = data.getReader();
-    // let content = "";
-    // await streamReader(reader, (message) => {
-    //   // console.log("MESSAGE from streamReader: " + JSON.stringify(message));
-    //   if (message.event === "newChatId") {
-    //     setNewChatId(message.content);
-    //   }else{
-    //     setIncomingMessage((s) => `${s}${message.content}`);
-    //     content = content + message.content;
-    //   }
-    // });
-    // setFullMessages(content);
-    // setIncomingMessage(""); //reset the incomming messages
-    // setGeneratingResponse(false);
-
-    //via SDK
-    let content = "";
-    const response = await fetch(`/api/chat/sendMessageSDK`, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({ chatId, message: messageText }),
+    //via API
+    const response = await fetch(`/api/chat/sendMessage`, {
+        method: "POST",
+        headers: {
+            "content-type": "application/json",
+        },
+        body: JSON.stringify({ chatId, message: messageText }),
     });
 
-    const data = await response.json();
-    // console.log("RESPONSE from SDK: " + JSON.stringify(data));
-
+    const data = response.body;
     if(!data){
       return;
     }
 
-    // console.log("data.newChatId?.length: " + data.newChatId?.length);
-    if(data.newChatId?.length > 0){
-      setNewChatId(data.newChatId)
-    }else{
-      setIncomingMessage(s => `${s}${data.content}`);
-      content = content + data.content;
-    }
+    const reader = data.getReader();
+    let content = "";
+    await streamReader(reader, (message) => {
+      // console.log("MESSAGE from streamReader: " + JSON.stringify(message));
+      if (message.event === "newChatId") {
+        setNewChatId(message.content);
+      }else{
+        setIncomingMessage((s) => `${s}${message.content}`);
+        content = content + message.content;
+      }
+    });
     setFullMessages(content);
     setIncomingMessage(""); //reset the incomming messages
     setGeneratingResponse(false);
+
+    // //via SDK
+    // let content = "";
+    // const response = await fetch(`/api/chat/sendMessageSDK`, {
+    //   method: "POST",
+    //   headers: {
+    //     "content-type": "application/json",
+    //   },
+    //   body: JSON.stringify({ chatId, message: messageText }),
+    // });
+
+    // const data = await response.json();
+    // // console.log("RESPONSE from SDK: " + JSON.stringify(data));
+
+    // if(!data){
+    //   return;
+    // }
+
+    // // console.log("data.newChatId?.length: " + data.newChatId?.length);
+    // if(data.newChatId?.length > 0){
+    //   setNewChatId(data.newChatId)
+    // }else{
+    //   setIncomingMessage(s => `${s}${data.content}`);
+    //   content = content + data.content;
+    // }
+    // setFullMessages(content);
+    // setIncomingMessage(""); //reset the incomming messages
+    // setGeneratingResponse(false);
 
   };
 
