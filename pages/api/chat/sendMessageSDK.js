@@ -84,8 +84,8 @@ export default async function handler(req, res) {
       
       const client = new OpenAIClient(process.env.ENDPOINT, new AzureKeyCredential(process.env.AZURE_OPENAI_API_KEY));
       const deploymentId = "test-gpt-35-turbo";
-      // const events = await client.listChatCompletions(deploymentId, messages, { maxTokens: 128, stream: true });
-      const events = await client.listChatCompletions(deploymentId, messages, { stream: true });
+      const events = await client.listChatCompletions(deploymentId, messages, { maxTokens: 128 });
+      // const events = await client.listChatCompletions(deploymentId, messages, { stream: true });
       let rtn_msg = "";
       
       for await (const event of events) {
