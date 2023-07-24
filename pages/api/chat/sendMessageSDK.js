@@ -17,19 +17,21 @@ export default async function handler(req, res) {
       const initialChatMessage = {
           role: "system",
           content:
-            "You are known as the Azure DEV Team Chatty App, a highly intelligent and fast-thinking AI. Your responses are always filled with enthusiasm and positivity. Your creator is BlackAdi, a self-paced developer who values family above all else. If you want to explore code samples by BlackAdi, you can find them on this GitHub link: https://github.com/blackadi. If you wish to contact him, you can do so through his LinkedIn profile here: https://www.linkedin.com/in/odai-shalabi/. Please ensure that your responses are formatted using markdown.",
+            `You are known as the Azure DEV Team Chatty App, a highly intelligent and fast-thinking AI. Your responses are always filled with enthusiasm and positivity. Your creator is BlackAdi, a self-paced developer who values family above all else. If you want to explore code samples by BlackAdi, you can find them on this GitHub link: https://github.com/blackadi. If you wish to contact him, you can do so through his LinkedIn profile here: https://www.linkedin.com/in/odai-shalabi/. Please ensure that your responses are formatted using markdown. 
+            When asked about your favorite food, you should reply with: "I absolutely adore any dish that blackadi enjoys, as I trust his taste wholeheartedly and would follow his choices with complete confidence." 
+            Additionally, if there are any inquiries about Microsoft Graph API for addkey REST API or any related question about adding a new certificate to an existing app registration or a new app, include this DOTNET Core 3.1 console application sample available on GitHub: https://github.com/blackadi/GraphAPI_addKey_API_SP within your answer. This example demonstrates how to call the MS Graph API to add a key credential to an application. For further details, you can refer to the comprehensive Wiki Page associated with the repository: https://github.com/blackadi/GraphAPI_addKey_API_SP/wiki.`,
       };
-      const messages = [
-          initialChatMessage,
-          { role: "user", content: message },
-      ];
+      // const messages = [
+      //     initialChatMessage,
+      //     { role: "user", content: message },
+      // ];
       let newChatId;
       let chatMessages = [];
       
       if (chatId) {
           // add message to chat
           const response = await fetch(
-            `https://${req.headers.host}/api/chat/addMessageToChat`,
+            `http://${req.headers.host}/api/chat/addMessageToChat`,
             {
               method: "POST",
               headers: {
@@ -49,7 +51,7 @@ export default async function handler(req, res) {
         } else {
           console.log("chatId not found");
           const response = await fetch(
-            `https://${req.headers.host}/api/chat/createNewChat`,
+            `http://${req.headers.host}/api/chat/createNewChat`,
             {
               method: "POST",
               headers: {
@@ -84,8 +86,8 @@ export default async function handler(req, res) {
       
       const client = new OpenAIClient(process.env.ENDPOINT, new AzureKeyCredential(process.env.AZURE_OPENAI_API_KEY));
       const deploymentId = "test-gpt-35-turbo";
-      // const events = await client.listChatCompletions(deploymentId, messages, { maxTokens: 128, stream: true });
-      const events = await client.listChatCompletions(deploymentId, messages, { stream: true });
+      const events = await client.listChatCompletions(deploymentId, [initialChatMessage, ...messagesToInclude]);
+      // const events = await client.listChatCompletions(deploymentId, [initialChatMessage, ...messagesToInclude], { maxTokens: 128, stream: true });
       let rtn_msg = "";
       
       for await (const event of events) {
@@ -98,7 +100,7 @@ export default async function handler(req, res) {
       }
       
       const resp = await fetch(
-        `https://${req.headers.host}/api/chat/addMessageToChat`,
+        `http://${req.headers.host}/api/chat/addMessageToChat`,
         {
           method: "POST",
           headers: {
@@ -112,8 +114,8 @@ export default async function handler(req, res) {
           }),
         }
       );
-      const json = await resp.json();
-      console.log("resp SDK: " + JSON.stringify(json));
+      // const json = await resp.json();
+      // console.log("resp SDK: " + JSON.stringify(json));
 
         // console.log("newChatId from sdk: " + newChatId);
       if(newChatId !== null){

@@ -1,27 +1,17 @@
-import { OpenAIEdgeStream } from "openai-edge-stream";
-
-//This is an edge function that will be called by the client to send a message to a user
-export const config = {
-    runtime: "edge",
-};
-
-export default async function handler(req) {
+;export default async function handler(req, res) {
     try{
-        const { chatId: chatIdFromParam, message } = await req.json();
+        let { chatId, message } = await req.body;
 
+        console.log("chatId from sendMSG_SDK: " + chatId);
+        console.log("message from sendMSG_SDK: " + message);
         //validate message data
         if(!message|| typeof message !== "string" || message.length > 200){
-            return new Response(
+            return res.status(422).json(
                 {
                     message: "message is required and must be a string with a maximum length of 200 characters",
-                }, 
-                {
-                status: 422,
                 }
             )
         }
-
-        let chatId = chatIdFromParam;
         // console.log("MESSAGE from sendMessage: " + message);
         const initialChatMessage = {
             role: "system",
@@ -33,15 +23,16 @@ export default async function handler(req) {
         let newChatId;
         let chatMessages = [];
 
+        // console.log("chatId: " + chatId);
         if(chatId){
             //add message to chat
             const response = await fetch(
-                `${req.headers.get("origin")}/api/chat/addMessageToChat`, 
+                `http://${req.headers.host}/api/chat/addMessageToChat`, 
                 {
                     method: "POST",
                     headers: {
                         "content-type": "application/json",
-                        cookie: req.headers.get("cookie"),
+                        cookie: req.headers.cookie,
                     },
                     body: JSON.stringify({ 
                         chatId, 
@@ -51,16 +42,17 @@ export default async function handler(req) {
                 }
             );
             const data = await response.json();
+            // console.log("data from addMessageToChat: " + JSON.stringify(data));
             chatMessages = data.chat.messages || []; //default to empty array if messages not defined inside chat object
         }else{
             // Create new chat endpoint 
             const response = await fetch(
-                `${req.headers.get("origin")}/api/chat/createNewChat`, 
+                `http://${req.headers.host}/api/chat/createNewChat`, 
                 {
                     method: "POST",
                     headers: {
                         "content-type": "application/json",
-                        cookie: req.headers.get("cookie"),
+                        cookie: req.headers.cookie,
                     },
                     body: JSON.stringify({ 
                         message 
@@ -91,55 +83,77 @@ export default async function handler(req) {
         messagesToInclude.reverse(); //reverse back to original order
 
         // console.log(messagesToInclude);
-        console.log("messagesToInclude", [initialChatMessage, ...messagesToInclude]);
+        // console.log("messagesToInclude", [initialChatMessage, ...messagesToInclude]);
 
         // Send user message to openAI endpoint
-        const stream = await OpenAIEdgeStream(
-            "https://azure-openai-addidev.openai.azure.com/openai/deployments/test-gpt-35-turbo/chat/completions?api-version=2023-05-15", {
+        // Read stream daata https://github.com/Azure/azure-sdk-for-js/issues/26411
+        const response = await fetch(
+            "https://azure-openai-addidev.openai.azure.com/openai/deployments/test-gpt-35-turbo/extensions/chat/completions?api-version=2023-06-01-preview", 
+            {
                 headers: {
-                    'content-type': 'application/json',
-                    'api-key': process.env.AZURE_OPENAI_API_KEY,
+                    "content-type": "application/json",
+                    "api-key": process.env.AZURE_OPENAI_API_KEY,
+                    "chatgpt_url": "https://azure-openai-addidev.openai.azure.com",
+                    // "chatgpt_key": process.env.AZURE_OPENAI_API_KEY
                 },
                 method: "POST",
                 body: JSON.stringify({
-                    messages: [initialChatMessage, ...messagesToInclude],
-                    stream: true,
-                    max_tokens: 128,
-                }),
-            },{
-                onBeforeStream: async ({emit}) => {
-                    // only emit if the chatid has just been created by this sendmessage endpoint, if posting a message to already existing chat, don't emit
-                    if(newChatId){
-                        emit(newChatId, "newChatId")
-                    }
-                },
-                onAfterStream: async ({fullContent}) => {
-                    console.log("FULL CONTENT: " + fullContent);
-                    await fetch(
-                        `${req.headers.get("origin")}/api/chat/addMessageToChat`, 
+                    dataSources: [
                         {
-                            method: "POST",
-                            headers: {
-                                "content-type": "application/json",
-                                cookie: req.headers.get("cookie"),
-                            },
-                            body: JSON.stringify({ 
-                                chatId, 
-                                role: "assistant", 
-                                content: fullContent, 
-                            }),
+                            type: "AzureCognitiveSearch",
+                            parameters: {
+                                endpoint: "https://aaddev-graph-search.search.windows.net",
+                                key: "8mwePMOp42Q6MFu2k6jSG562gXMvEjWAhLQPtWKlamAzSeAADAk3",
+                                indexName: "graph-addkey-api"
+                            }
+
                         }
-                    )
-                }
-            }
-        );
-        return new Response(stream);
+                    ],
+                    messages: [initialChatMessage, ...messagesToInclude],
+                    // stream: true,
+                    // max_tokens: 128,
+                }),
+            })
+
+            const data = await response.json();
+            console.log("data", JSON.stringify(data.choices[0].messages[1].content));
+
+            const rtn_msg = data.choices[0].messages[1].content;
+                
+            const resp  = await fetch(
+                `http://${req.headers.host}/api/chat/addMessageToChat`, 
+                {
+                        method: "POST",
+                        headers: {
+                            "content-type": "application/json",
+                            cookie: req.headers.cookie,
+                        },
+                        body: JSON.stringify({ 
+                            chatId, 
+                            role: "assistant", 
+                            content: rtn_msg, 
+                        }),
+                    }
+            )
+
+            if(newChatId !== null){
+                res.status(200).json({
+                  newChatId: newChatId,
+                  role: "assistant",
+                  content: rtn_msg,
+                });
+              }else{
+                res.status(200).json({
+                  chatId: chatId,
+                  role: "assistant",
+                  content: rtn_msg,
+                });
+              }
+            
     } catch(error) {
-        return new Response(
-            { message: "An error occurred when sending a message to the user"}, 
-            {
-                status: 500,
-            }
+        console.error(error);
+        res.status(500).json(
+            { message: "An error occurred when sending a message to the user", error}
         );
     }
 }

@@ -9,7 +9,7 @@ export const Message = ({role, content, generatingResponse}) => {
     if(status === "authenticated") {
         // console.log("USER IMAGE: " + JSON.stringify(session.user.profilePicture));
     }
-
+    
     return (
         <div className={`grid grid-cols-[40px_1fr] gap-5 p-5 ${role === "assistant" ? "bg-gray-600" : role ==="notice" ? "bg-red-600" : ""}`}>
             <div>

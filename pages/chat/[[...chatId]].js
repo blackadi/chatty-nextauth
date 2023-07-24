@@ -78,6 +78,7 @@ export default function ChatPage({ chatId, title, messages = [] }) {
     setMessageText("");
 
     // //via API
+    // let content = "";
     // const response = await fetch(`/api/chat/sendMessage`, {
     //     method: "POST",
     //     headers: {
@@ -86,25 +87,24 @@ export default function ChatPage({ chatId, title, messages = [] }) {
     //     body: JSON.stringify({ chatId, message: messageText }),
     // });
 
-    // const data = response.body;
+    // const data = await response.json();
+
+    // console.log("RESPONSE from API: " + JSON.stringify(data));
     // if(!data){
     //   return;
     // }
 
-    // const reader = data.getReader();
-    // let content = "";
-    // await streamReader(reader, (message) => {
-    //   // console.log("MESSAGE from streamReader: " + JSON.stringify(message));
-    //   if (message.event === "newChatId") {
-    //     setNewChatId(message.content);
-    //   }else{
-    //     setIncomingMessage((s) => `${s}${message.content}`);
-    //     content = content + message.content;
-    //   }
-    // });
+    // if(data.newChatId?.length > 0){
+    //   setNewChatId(data.newChatId)
+    // }else{
+    //   setIncomingMessage(s => `${s}${data.content}`);
+    //   content = content + data.content;
+    // }
     // setFullMessages(content);
     // setIncomingMessage(""); //reset the incomming messages
     // setGeneratingResponse(false);
+
+
 
     //via SDK
     let content = "";
@@ -165,7 +165,7 @@ export default function ChatPage({ chatId, title, messages = [] }) {
                   />
                 ))}
                 {!!incomingMessage && !routeHasChanged && (
-                  <Message role="assistant" content={incomingMessage} />
+                  <Message role="assistant" content={incomingMessage}/>
                   )}
                   {!!incomingMessage && !!routeHasChanged && ( //if there is an incomming message and the route has changed is false 
                     <Message 
