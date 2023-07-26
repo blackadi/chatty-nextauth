@@ -4,14 +4,20 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
 import { ReactMarkdown } from "react-markdown/lib/react-markdown";
 
-export const Message = ({role, content, generatingResponse}) => {
+export const Message = ({role, content}) => {
     const {data: session, status} = useSession(); // load the user from auth0 session
     if(status === "authenticated") {
         // console.log("USER IMAGE: " + JSON.stringify(session.user.profilePicture));
     }
     
     return (
-        <div className={`grid grid-cols-[40px_1fr] gap-5 p-5 ${role === "assistant" ? "bg-gray-600" : role ==="notice" ? "bg-red-600" : ""}`}>
+        <div className={`grid grid-cols-[30px_1fr] gap-5 p-5 ${
+            role === "assistant"
+              ? "bg-gray-600"
+              : role === "notice"
+              ? "bg-red-600"
+              : ""
+          }`}>
             <div>
                 {role === "user" && status === "loading" &&(
                     <div>

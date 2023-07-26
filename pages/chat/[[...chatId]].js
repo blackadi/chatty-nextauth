@@ -1,20 +1,16 @@
 import { ChatSidebar } from "components/ChatSidebar";
 import Head from "next/head";
 import { useEffect, useState } from "react";
-import { streamReader } from 'openai-edge-stream';
 import {v4 as uuid} from "uuid";
 import { Message } from "components/Message";
 import Spinner from "components/Message/spinner";
 import { useRouter } from "next/router";
-import { getServerSession } from "next-auth/next";
 import clientPromise from "lib/mongodb";
 import { ObjectId } from "mongodb";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faRobot } from "@fortawesome/free-solid-svg-icons";
-import { authOptions } from "pages/api/auth/[...nextauth]";
-import { getProviders } from "next-auth/react";
 import { getToken } from "next-auth/jwt";
-import jwt_decode from "jwt-decode";
+import { streamReader } from "lib/azure-openai-edge-stream";
 
 export default function ChatPage({ chatId, title, messages = [] }) {
   // console.log("props: " + title, messages);
@@ -35,7 +31,7 @@ export default function ChatPage({ chatId, title, messages = [] }) {
     setNewChatMessages([]);
     setNewChatId(null);
   }, [chatId])
-
+  
   //sav the newly streamed message to new chat messages
   useEffect(() => {
     if(!routeHasChanged && !generatingResponse && fullMessages){
@@ -59,6 +55,7 @@ export default function ChatPage({ chatId, title, messages = [] }) {
       router.push(`/chat/${newChatId}`);
     }
   },[newChatId, generatingResponse, router])
+
   const handleSubmit = async (e) => {
     e.preventDefault(); // stop the form tag from refreshing the page
     setGeneratingResponse(true);
@@ -77,23 +74,57 @@ export default function ChatPage({ chatId, title, messages = [] }) {
     })
     setMessageText("");
 
-    // //via API
+    //via API
+    const response = await fetch(`/api/chat/sendMessage`, {
+        method: "POST",
+        headers: {
+            "content-type": "application/json",
+        },
+        body: JSON.stringify({ chatId, message: messageText }),
+    });
+
+    console.log("RESPONSE: " + JSON.stringify(response.body));
+
+    const data = response.body;
+    if (!data) {
+      return;
+    }
+    const reader = data.getReader();
+    let content = "";
+    await streamReader(reader, (message) => {
+      console.log("MESSAGE: ", message);
+      if (message.event === "newChatId") {
+        setNewChatId(message.content);
+      } else {
+        setIncomingMessage((s) => `${s}${message.content}`);
+        content = content + message.content;
+      }
+    });
+
+    setFullMessages(content);
+    setIncomingMessage(""); //reset the incomming messages
+    setGeneratingResponse(false);
+
+
+
+    // //via SDK
     // let content = "";
-    // const response = await fetch(`/api/chat/sendMessage`, {
-    //     method: "POST",
-    //     headers: {
-    //         "content-type": "application/json",
-    //     },
-    //     body: JSON.stringify({ chatId, message: messageText }),
+    // const response = await fetch(`/api/chat/sendMessageSDK`, {
+    //   method: "POST",
+    //   headers: {
+    //     "content-type": "application/json",
+    //   },
+    //   body: JSON.stringify({ chatId, message: messageText }),
     // });
 
     // const data = await response.json();
+    // // console.log("RESPONSE from SDK: " + JSON.stringify(data));
 
-    // console.log("RESPONSE from API: " + JSON.stringify(data));
     // if(!data){
     //   return;
     // }
 
+    // // console.log("data.newChatId?.length: " + data.newChatId?.length);
     // if(data.newChatId?.length > 0){
     //   setNewChatId(data.newChatId)
     // }else{
@@ -103,36 +134,6 @@ export default function ChatPage({ chatId, title, messages = [] }) {
     // setFullMessages(content);
     // setIncomingMessage(""); //reset the incomming messages
     // setGeneratingResponse(false);
-
-
-
-    //via SDK
-    let content = "";
-    const response = await fetch(`/api/chat/sendMessageSDK`, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({ chatId, message: messageText }),
-    });
-
-    const data = await response.json();
-    // console.log("RESPONSE from SDK: " + JSON.stringify(data));
-
-    if(!data){
-      return;
-    }
-
-    // console.log("data.newChatId?.length: " + data.newChatId?.length);
-    if(data.newChatId?.length > 0){
-      setNewChatId(data.newChatId)
-    }else{
-      setIncomingMessage(s => `${s}${data.content}`);
-      content = content + data.content;
-    }
-    setFullMessages(content);
-    setIncomingMessage(""); //reset the incomming messages
-    setGeneratingResponse(false);
 
   };
 
